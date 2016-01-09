@@ -18,7 +18,7 @@ Version improvements are:
 
 8. version 8 was the version submitted before. But there were some defects in it
 
-9. version 9 corrects some errors and typoes in version 8 and is currently newest version
+9. version 9 corrects some errors and typos in version 8 and is currently newest version
 
 version 7 tells the story. The versions before version 7 do not include storying telling or their webpage appearance may be bad but they are still important because they are the base of the final version. 
 
