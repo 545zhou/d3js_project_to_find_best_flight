@@ -28,7 +28,7 @@ To show the webpage, turn on control console then go to one version directory. T
 
 Then go to web browser and type in address: localhost:8000. Find the .html file and click it to go to the right webpage. 
 
-1. ##Summary
+1. ## Summary
 
 The purpose of this project is to help people decide which airline carrier to take if they are time sensitive. I used line chatter to show evolution and bar chart to compare different choices. In the line chart, a perticular airline could be distinguished from others by mouseover or click. In the bar chart, interaction is used to take different strategies. From the illustration and analysis, we find some pretty good choices of airline carriers to DC if you hate being late. "VX", "UA", "AS" and "DL" are among best good options for most people if available. If those carrier are not availabe for you, the plots with interactions can still give you a hand to help decide which airline suits you best. 
 
@@ -36,7 +36,7 @@ For someone who feels hard to choose if there is tradeoff, I also created a new 
 
 More information and analysis is in index_final.html.
 
-2. ##Design
+2. ## Design
 
 I would like to see the performance evolution of each airline carrier over years to find any trend, so a line chart is the best to accomplish this goal. But plot a lot of lines on the same chart is a little messy, so I design some interactions such as mouseover and click to highlight the lines that one is interested at. Such interactions help people focus on perticular lines. 
 
@@ -46,7 +46,7 @@ Then my girlfriend provided me a good improvement. If there are two factors whic
 
 All the plots have borders because it makes the plot more clear. For the first plot, I use different colors to represent different carriers. For the two bar charts, I use green to be the color becasue it's more comfortable and clear to me. Plot 1, plot 2 and plot 3 all have interactions. 
 
-3. ##Feedback
+3. ## Feedback
   
 1st person: Plot 2 draws histogram. If the bars are not ordered, it's not easy to see at first glance which is best.
 
@@ -64,7 +64,7 @@ Improvement: Add "mouseout" method into the interaction. So now when mouse moves
 
 Improvement: As mentioned in the above Desigan section, I created a new feature to help people to decide.
 
-4. ##Resources
+4. ## Resources
 
 	www.udacity.com
 
@@ -79,5 +79,5 @@ Improvement: As mentioned in the above Desigan section, I created a new feature 
 	www.dashingd3js.com
 
 	http://alignedleft.com/tutorials/d3
-  
+
 	I also discussed with my friend to debug my code.
