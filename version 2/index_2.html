@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="http://d3js.org/d3.v3.min.js"></script>
+  <script src="http://dimplejs.org/dist/dimple.v2.0.0.min.js"></script>
+
+  <style>
+  circle.dimple-series-1 {
+    fill: red;
+  }
+
+  h2 {
+    text-align: center;
+  }
+  </style>
+  <script type="text/javascript">  
+    var format = d3.time.format("%Y");
+
+    function draw(data) {
+      /*
+      D3.js setup code
+      */
+      "use strict";
+      var margin = 75,
+      width = 1200 - margin,
+      height = 600 - margin;
+
+      var svg = d3.select(".plot-1")
+                  .append("svg")
+                  .attr("width", width + margin)
+                  .attr("height", height + margin)
+                  .append('g')
+                  .attr('class', 'total_flights');
+
+      //project_1 plot total arr_flights
+      //project_2 plot ontime ratio over year
+
+            
+      function agg_year(leaves) {
+        var total_flights = d3.sum(leaves, function(d) {
+          return d['arr_flights'];
+        });
+
+        var total_delayed = d3.sum(leaves, function(d){
+          return d['arr_del15'];
+        });
+
+        var total_cancelled = d3.sum(leaves, function(d){
+          return d['arr_cancelled'];
+        });
+
+        var total_diverted = d3.sum(leaves, function(d){
+          return d['arr_diverted'];
+        });
+
+        var ontime_ratio = (total_flights - total_delayed - total_diverted - total_cancelled) / total_flights;
+
+        return {
+          'total_flights' : total_flights,
+          'ontime_ratio' : ontime_ratio
+        }
+      }
+
+      var nested = d3.nest()
+                      .key(function(d) {
+                        return d['year'];
+                      })
+                      .rollup(agg_year)
+                      .entries(data);
+
+      var time_extent = d3.extent(data, function(d) {
+        return d['year'];
+      });
+
+      var time_scale = d3.time.scale()
+                          .range([margin, width])
+                          .domain(time_extent);
+
+      var count_scale = d3.scale.linear()
+                          .range([height, margin])
+                          .domain([0, 1]);
+
+      var time_axis = d3.svg.axis()
+                        .scale(time_scale)
+                        .tickFormat(d3.format('d'));
+
+      d3.select("svg")
+        .append('g')
+        .attr('class', 'x axis')
+        .attr('transform', "translate(0," + height + ")")
+        .call(time_axis);
+
+      var count_axis = d3.svg.axis()
+                          .scale(count_scale)
+                          .orient("left");
+
+      d3.select("svg")
+        .append('g')
+        .attr('class', 'y axis')
+        .attr('transform', "translate(" + margin + ",0)")
+        .call(count_axis);
+
+      function plot_circles(feature){
+        svg.append('g')
+            .attr("class", "circle")
+            .selectAll("circle")
+            .data(nested)
+            .enter()
+            .append("circle")
+            .attr('cx', function(d){
+              return time_scale(+d.key);
+              })
+            .attr('cy', function(d) { 
+              return count_scale(d.values[feature]); 
+              })
+            .attr('r', 5)
+            .attr('fill', 'red');
+      };
+
+      function plot_line(feature){
+        var lineFunc = d3.svg.line()
+                          .x(function(d){
+                            return time_scale(d.key);
+                          })
+                          .y(function(d){
+                            return count_scale(d.values[feature]);
+                          });
+
+        svg.append('g')
+           .append('path')
+           .attr('d', lineFunc(nested))
+           .attr('stroke', 'blue')
+           .attr('stroke-width', 2)
+           .attr('fill', 'none');
+      };
+
+      plot_circles("ontime_ratio");
+      plot_line("ontime_ratio");
+
+    };
+  </script>
+</head>
+<body>
+  <div  class = "plot-1">
+    <script type="text/javascript">
+      d3.csv("airline_delay_causes.csv",function(d) {
+        d['arr_flights'] = +d["arr_flights"];
+        d['arr_del15'] = +d['arr_del15'];
+        d['arr_cancelled'] = +d['arr_cancelled'];
+        d['arr_diverted'] = +d['arr_diverted'];
+        d['year'] = +d['year'];
+        return d;
+      }, draw);
+    </script>
+  </div>
+
+  <div>
+    <p>
+        from the above chart we can see ...
+    </p>
+  </div>
+</body>
+</html>

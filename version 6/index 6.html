@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="http://d3js.org/d3.v3.min.js"></script>
+  <script src="http://dimplejs.org/dist/dimple.v2.0.0.min.js"></script>
+  <script src="./draw_plot_1.js"></script>
+  <script src="./draw_plot_2.js"></script>
+
+  <style>
+    h2 {
+      text-align: center;
+    }
+
+    div{
+      text-align: center;
+    }
+
+    path.line{
+      stroke-width : 1;
+      pointer-events: stroke;
+      pointer_events: fill;
+    }
+
+    .bar{
+      pointer-events: fill;
+    }
+
+
+  </style>
+  <script type="text/javascript">  
+    //index_1 plot total arr_flights
+    //index_2 plot ontime ratio over year
+    //index_3 add interaction to plot 1
+    //index_4 add plot 2 which shows average delay time
+    //index_5 plot 2 now show delay&ratio and can sort by either
+    
+
+   // var format = d3.time.format("%Y");
+
+    /*
+      D3.js setup code
+    */
+    "use strict";
+    var margin = 70,
+    width = 1000 - margin,
+    height = 600 - margin;
+    var padding = 5;
+    var barPadding = 2;
+
+    
+    function draw(data) {
+
+      // plot first graph
+      draw_plot_1(data);
+
+
+      // extract the requisted data of each carrier
+      var nested_carrier_data_raw = nested_data_carrier(data, 2013);
+      var nested_carrier_data = nested_carrier_data_raw
+                                .sort(function(a, b) { 
+                                  return a.values['average_delay'] - b.values['average_delay'];
+                                });
+
+      draw_plot_2(nested_carrier_data); 
+
+      var sort_text = d3.select("#sort_text");  
+      var sort_button = d3.select("#sort_button");              
+      sort_text.on("click", function(d){
+        //debugger;
+        if(sort_button.attr("position") == "left"){
+          sort_button.attr("position", "right");
+          sort_button.attr("x", 88 + width * 0.44 + 1);
+          sort_button.attr("width", 82);
+          nested_carrier_data = nested_carrier_data_raw
+                                .sort(function(a, b) { 
+                                  return a.values['ontime_ratio'] - b.values['ontime_ratio'];
+                                });
+          var bar_related = d3.selectAll(".bar_related");
+          bar_related.remove();
+          draw_plot_2_update(nested_carrier_data); 
+        }
+        else{
+          sort_button.attr("position", "left");
+          sort_button.attr("x", width * 0.44 + 1);
+          sort_button.attr("width", 88);
+          nested_carrier_data = nested_carrier_data_raw
+                                .sort(function(a, b) { 
+                                  return a.values['average_delay'] - b.values['average_delay'];
+                                });
+          var bar_related = d3.selectAll(".bar_related");
+          bar_related.remove();
+          draw_plot_2_update(nested_carrier_data); 
+        }
+      })
+
+    };
+
+  </script>
+</head>
+<body>
+  <h2>
+    Which airline carrier is the best choise if you are in DC and hate being late?
+  </h2>
+  <div  class = "plot-1">
+    <script type="text/javascript">
+      d3.csv("airline_delay_causes.csv",function(d) {
+        d['arr_flights'] = +d["arr_flights"];
+        d['arr_del15'] = +d['arr_del15'];
+        d['arr_cancelled'] = +d['arr_cancelled'];
+        d['arr_diverted'] = +d['arr_diverted'];
+        d[' arr_delay'] = +d[' arr_delay'];
+        d['year'] = +d['year'];
+        return d;
+      }, draw);
+    </script>
+  </div>
+
+  <div>
+    <p>
+        from the above chart we can see ...
+    </p>
+  </div>
+
+  <div class = "plot-2">
+  </div>
+</body>
+</html>

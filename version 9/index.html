@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset='utf-8'>
+  <script src='http://d3js.org/d3.v3.min.js'></script>
+  <script src='http://dimplejs.org/dist/dimple.v2.0.0.min.js'></script>
+  <script src='./draw_plot_1.js'></script>
+  <script src='./draw_plot_2.js'></script>
+  <script src='./draw_plot_3.js'></script>
+
+
+  <style>
+    h2 {
+      text-align: center;
+    }
+
+    div{
+      text-align: center;
+    }
+
+    p{
+      padding-left: 100px;
+      padding-right: 100px;
+      font-size: 18;
+    }
+
+    path.line{
+      stroke-width : 1;
+      pointer-events: stroke;
+      pointer_events: fill;
+    }
+
+    .bar{
+      pointer-events: fill;
+    }
+
+
+  </style>
+  <script type='text/javascript'>  
+    //version control
+    //index_1 plot total arr_flights
+    //index_2 plot ontime ratio over year
+    //index_3 add interaction to plot 1
+    //index_4 add plot 2 which shows average delay time
+    //index_5 plot 2 now show delay&ratio and can sort by either of them
+    //index_6 split code into different .js files for better management
+    //index_7 used graph to display a story
+    //index_final add improvements according to feedback
+
+   // var format = d3.time.format('%Y');
+
+    /*
+      D3.js setup code
+    */
+    'use strict';
+    var margin = 70,
+    width = 1000 - margin,
+    height = 600 - margin;
+    
+    function draw(data) {
+
+      // plot first graph
+      draw_plot_1(data);
+
+
+      // extract the requisted data of each carrier
+      // I want to find the nearest 2 years data so I use a filter to make sure the 'year' feature of each entry is larger than 2013
+      var nested_carrier_data_raw = nested_data_carrier(data, 2013);
+      var nested_carrier_data = nested_carrier_data_raw
+                                .sort(function(a, b) { 
+                                  return a.values['average_delay'] - b.values['average_delay'];
+                                });
+
+      draw_plot_2(nested_carrier_data); 
+
+      // sort_text sort_button can work together to accomplish the slide switch function. User can choose to sort data by delay time or ontime ratio
+      var sort_text = d3.select('#sort_text');  
+      var sort_button = d3.select('#sort_button');              
+      sort_text.on('click', function(d){
+        //debugger;
+        if(sort_button.attr('position') == 'left'){
+          sort_button.attr('position', 'right');
+          sort_button.attr('x', 88 + width * 0.44 + 1);
+          sort_button.attr('width', 82);
+          nested_carrier_data = nested_carrier_data_raw
+                                .sort(function(a, b) { 
+                                  return a.values['ontime_ratio'] - b.values['ontime_ratio'];
+                                });
+          var bar_related = d3.selectAll('.bar_related');
+          bar_related.remove();
+          draw_plot_2_update_bars(nested_carrier_data); 
+        }
+        else{
+          sort_button.attr('position', 'left');
+          sort_button.attr('x', width * 0.44 + 1);
+          sort_button.attr('width', 88);
+          nested_carrier_data = nested_carrier_data_raw
+                                .sort(function(a, b) { 
+                                  return a.values['average_delay'] - b.values['average_delay'];
+                                });
+          var bar_related = d3.selectAll('.bar_related');
+          bar_related.remove();
+          draw_plot_2_update_bars(nested_carrier_data); 
+        }
+      });
+
+      draw_plot_3(nested_carrier_data);
+
+    };
+
+  </script>
+</head>
+<body>
+  <h2>
+    Which airline carrier is the best choise if you are heading to DC and hate being late?
+  </h2>
+
+  <p>
+    As a person living near Washington DC, I sometimes take planes from DC Dulles airport to my destinations and come back to Dulles. I myself does not like planes being late and I believe there are a lot of people who also hate this. People like bussinessmen, doctors, parents and etc. may be very senstive to timing. So it's worthing thinking about this question: if I don't want to be late, which airline carrier should I choose if I'm going to DC? 
+  </p>
+  <p>
+    To solve this problem. The first thing I need to make sure is of course that the airline carrier I will choose must have the airline to DC. Suppose I depart from one unknown place and there is only one small carrier company who flies to DC. Although this carrier's service is terrible, I don't have any other choice but have to take its plane. Unfortunately, the data sheet I downloaded from online does not indicate where one plane comes from. The dataset has only contains destination and delay information. Is this dataset worthless?
+  </p>
+  <p>
+    Of course not. It is true that if you have no choice you accept reality. But if you come from a big city and there are a lot of airlines to DC, you should have a look at the comparison in the following. It may give you some idea which airline carrier you should choose if you don't want to be late. 
+  </p>
+  <p>
+    To estimate how well an airline carrier is performing, I think the percentage of its ontime flights is a good ruler. It is also the possibility of flights being on time. The total ontime flights is of course not a bad idea, but it contains more bias than ontime flights ratio. So the first plot to draw is the ontime ratio evolution or ontime possibility evolution of each airline carrier. 
+  </p>
+  <p>
+    (Guide to interact with the plot: X axis is the year. The data has years from 2002 to 2015. To make plot more clear, X axis is set to be from 2002 to 2016. Y axis is ontime ratio. To sperate the lines, I have made the Y axis from 0.4 to 1. Each color represents on carrier. Mouseover one line,  that line will be highlighted and others will hide some. And the carrier code of the highlighted line will show. Click one line, the line would be pinned or fixed. So it's convenient to compare two or more lines. Click again and the selected line will be released.)
+  </p>
+
+ 
+  <div  class = 'plot-1'>
+    <script type='text/javascript'>
+      d3.csv('airline_delay_causes.csv',function(d) {
+        d['arr_flights'] = +d['arr_flights'];
+        d['arr_del15'] = +d['arr_del15'];
+        d['arr_cancelled'] = +d['arr_cancelled'];
+        d['arr_diverted'] = +d['arr_diverted'];
+        d[' arr_delay'] = +d[' arr_delay'];
+        d['year'] = +d['year'];
+        return d;
+      }, draw);
+    </script>
+  </div>
+
+  <p>
+    The above plot shows that there were really many carriers flying to DC over the past 13 years. Some of them stoppend flying to DC later, some continues and some reopen the airline to DC. The performance evolution lines tells us if one carrier is improving its service or its service is decading. It gives us an overview of performance of airline carriers. From this plot, we can build our initial expectation of flight performance. So such an evolution plot is necessary. 
+  </p>
+  <p>
+    If we pin and highlight the 10 carriers which still fly to DC, we can see clearly 5 of them get higher ontime ratio than others. If I'm going to choose an airline carrier from those 10 carriers, I may possibly choose one from the better fives. And by looking at trend of lines, it seems "DL", "OO" and "F9" keep improving their performance. But "F9" is still doing bad. It's performance is much worse than others. I may not choose it if I go to DC. The other carries are doing pretty constant. The black line and back circles show the average ontime possibility. We can see the possibility in the past years is pretty consistant. It's around 0.8. So if we want to take a flight, we don't want it's ontime possibility is lower than the 0.8 which is average. 
+  </p>
+
+  <p>
+    The above is ontime ratio evolution over years. It may give us some idea what to expect for a carrier in future. It's good but it's still not complete. Maybe we can never reach "completeness", but we do have ways to make the solution to the be "more complete". We have seen the ontime possibility of each airline but sometimes we want the delay to be as short as possible if the delay is unavoidable. So we can draw a histogram to show the recent 2 years averaged delay time of each airline. Why do I choose recent 2 years? From the above evolution plot we can see, one carrier can change its permance a lot and long past years' performance does not represent current status.  
+  </p>
+
+  <p>
+    To help balance between delay time and possiblity of being delayed, I also attached the histogram of the recent two years' ontime ratio to the same plot. By switching the sorting rules, the plot can help people to decide which strategy to take: do you want to take more risk of being too late but have bigger chance of not being late at all or do you accept larger late possiblity but enjoy shorter delay time?
+  </p>
+
+  <p>
+    (Guide to interact with the plot: mouseover one carrier, it will highlight and the carrier's full name will show. The bottom switch can switch sorting rules. Click the shadow part to switch.)
+  </p>
+  <div class = 'plot-2'>
+  </div>
+
+  <p>
+    The shorter the average delay is, the better it is. The longer the ontime ratio is, the better it is. From the plot, we can see "VX" is a pretty good choice if available. "DL" is also a pretty good tradeoff. "UA" is also not bad. If you don't want to take high risk of being later, you may choose "AS". If you can take higher risk of being delayed, but don't want the delay to be too long, "AA" may suit you. But in any case, "F9" is not good choice. Avoid it if possible. 
+  </p>
+
+  <p>
+    The second plot provides two different aspects to consider about which carrier to take. For someone who feels difficult to make tradeoff, that plot does not help a lot. Inspired by the concept "Opportunity Cost" in economics, I combined average delay time and ontime ratio and create a new feature "Opportunity Delay". It is defined as average delay time divided by delay possibility.
+    It means, if one take one airline, what the average delay time she/he expects. The smaller this value is, the better the flight is. 
+  </p>
+  <div class = 'plot-3'>
+  </div>
+
+  <p>
+    The above plot is very clear. "AS" and "VX" are the best choices if "Opportunity Delay" is the only factor to consider. "DL" is also doing pretty good. "UA", "AA" and "B6" are not as good the first three carries but doing fine. "F9" is the last choice.
+  </p>
+
+  <p>
+    Now let's go to conclusion. The purpose of this project is to help people decide which airline carrier to take if they are time sensitive. I used line chart to show evolution and bar chart to compare different choices. I also created a feature "Opportunity Delay" to help those who feel hard to choose. From the above illustration and analysis, we find some pretty good choice of airline carriers to DC if you hate being late. "VX", "AS" and "DL" are very good options for most people if available. If those carrier are not availabe for you, the above plots can still give you a hand to help decide which airline suits you best.
+  </p>
+</body>
+</html>

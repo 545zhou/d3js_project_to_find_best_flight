@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="http://d3js.org/d3.v3.min.js"></script>
+  <script src="http://dimplejs.org/dist/dimple.v2.0.0.min.js"></script>
+
+  <style>
+    h2 {
+      text-align: center;
+    }
+
+    div{
+      text-align: center;
+    }
+
+    path.line{
+      stroke-width : 1;
+      pointer-events: stroke;
+      pointer_events: fill;
+    }
+
+    .bar{
+      pointer-events: fill;
+    }
+
+
+  </style>
+  <script type="text/javascript">  
+    //index_1 plot total arr_flights
+    //index_2 plot ontime ratio over year
+    //index_3 add interaction to plot 1
+    //index_4 add plot 2 which shows average delay time
+
+   // var format = d3.time.format("%Y");
+
+    /*
+      D3.js setup code
+      */
+    "use strict";
+    var margin = 70,
+    width = 1000 - margin,
+    height = 600 - margin;
+    var barPadding = 4;
+
+    var time_scale = d3.time.scale()
+                        .range([margin, width])
+                        .domain([2002, 2016]);
+
+    var count_scale = d3.scale.linear()
+                        .range([height, margin])
+                        .domain([0.4, 1]);
+
+
+    // function to extract different year entries
+
+    function setup_svg(element){
+      element.append("rect")
+              .attr("x", 0)
+              .attr("y", 0)
+              .attr("height", height + margin)
+              .attr("width", width + margin)
+              .style("stroke", "black")
+              .style("fill", "none")
+              .style("stroke-width", 2);
+    }
+
+    function nested_data_year(data){
+      var result = d3.nest()
+                         .key(function(d) {
+                            return d['year'];
+                         })
+                         .rollup(agg_year)
+                         .entries(data);
+      return result;
+    };
+
+    // function to sum same year entries
+    function agg_year(leaves) {
+      var total_flights = d3.sum(leaves, function(d) {
+        return d['arr_flights'];
+      });
+
+      var total_delayed = d3.sum(leaves, function(d){
+        return d['arr_del15'];
+      });
+
+      var total_cancelled = d3.sum(leaves, function(d){
+        return d['arr_cancelled'];
+      });
+
+      var total_diverted = d3.sum(leaves, function(d){
+        return d['arr_diverted'];
+      });
+
+      var ontime_ratio = (total_flights - total_delayed - total_diverted - total_cancelled) / total_flights;
+
+      return {
+        'total_flights' : total_flights,
+        'ontime_ratio' : ontime_ratio,
+      }
+    }
+
+    //function to extract different carrier entries
+    function nested_data_carrier(data, year){
+      var result = d3.nest()
+                         .key(function(d) {
+                            return d['carrier'];
+                         })
+                         .rollup(agg_carrier)
+                         .entries(data.filter(function(d){
+                             // debugger;
+                              return d.year > year;
+                            }));
+      return result;
+    };
+
+    //function to sum same carrier entries
+    function agg_carrier(leaves){
+      var total_delayed = d3.sum(leaves, function(d){
+        return d['arr_del15'];
+      });
+
+      var total_delay_time = d3.sum(leaves, function(d){
+        return d[' arr_delay']
+      });
+
+      var average_delay = total_delay_time / total_delayed;
+      //debugger;
+
+      return {
+        'average_delay' : average_delay,
+        'carrier_name' : leaves[0].carrier_name,
+      }
+    }
+
+
+    // functioin to set up axis, x axis is year
+    function setup_draw_xy_axis_year(element){
+
+      var time_axis = d3.svg.axis()
+                      .scale(time_scale)
+                      .tickValues(d3.range(2002, 2017, 1))
+                      .tickFormat(d3.format('d'));
+
+      element.append('g')
+              .attr('class', 'x axis')
+              .attr('transform', "translate(0," + height + ")")
+              .call(time_axis);
+
+      element.append('text')
+              .attr('x', width / 2 + margin / 2 - 15)
+              .attr('y', height + margin/1.5)
+              .text("year")
+              .attr("font-size", "20px") ;
+                          
+      var count_axis = d3.svg.axis()
+                          .scale(count_scale)
+                          .orient("left")
+
+      element.append('g')
+              .attr('class', 'y axis')
+              .attr('transform', "translate(" + margin + ",0)")
+              .call(count_axis);
+
+      element.append('text')
+              .attr("transform", "rotate(-90)")
+              .attr("transform", "translate("+ (margin/3) +","+(height/2 + margin/2)+")rotate(-90)")
+              .style("text-anchor", "middle")
+              .text("total flights ontime ratio")
+              .attr("font-size", "20px") ;
+              
+    }
+
+    // set up and draw y axis for the histogram
+    function setup_draw_y_axis_carrier(element, y_scale){
+      var y_axis = d3.svg.axis()
+                          .scale(y_scale)
+                          .orient("left");
+
+      element.append('g')
+              .attr('class', 'y axis')
+              .attr('transform', "translate(" + margin + "," + 2 * margin + ")")
+              .call(y_axis);
+
+      element.append('text')
+              .attr("transform", "rotate(-90)")
+              .attr("transform", "translate("+ (margin/2) +","+(height/2 + margin)+")rotate(-90)")
+              .style("text-anchor", "middle")
+              .text("average delay (minutes)")
+              .attr("font-size", "20px") ;
+    }
+
+    // function to plot circles
+    function plot_circles(element, data, feature, color){
+      element.append('g')
+          .attr("class", "circle")
+          .selectAll("circle")
+          .data(data)
+          .enter()
+          .append("circle")
+          .attr('cx', function(d){
+            return time_scale(+d.key);
+            })
+          .attr('cy', function(d) { 
+            return count_scale(d.values[feature]); 
+            })
+          .attr('r', 5)
+          .attr('fill', color);
+    };
+
+    // function to plot line
+    function plot_line(element, data, feature, color, id){
+      var lineFunc = d3.svg.line()
+                        .x(function(d){
+                          return time_scale(d.key);
+                        })
+                        .y(function(d){
+                          return count_scale(d.values[feature]);
+                        });
+
+      element.append('g')
+             .append('path')
+             .attr('class', 'line')
+             .attr('d', lineFunc(data))
+             .attr('stroke', color)
+             .attr('fill', "none")
+             .attr('id', id)
+             .attr('locked', "false");
+    };
+
+    function draw_1(data) {
+
+      // create svg element
+      var svg = d3.select(".plot-1")
+                  .append("svg")
+                  .attr("width", width + margin)
+                  .attr("height", height + margin)
+                  .append('g')
+                  .attr('class', 'total_ontime_ratio');
+
+      // draw svg border
+      setup_svg(svg);
+      // draw x y axis
+      setup_draw_xy_axis_year(svg);
+
+
+      // extract the requisted yearly data
+      var nested_year = nested_data_year(data);
+
+      // debugger;
+
+      // draw circles of the average of total over year
+      plot_circles(svg, nested_year, "ontime_ratio", "black");
+      // draw line of the average of total over year
+      plot_line(svg, nested_year, "ontime_ratio", "black", "TOTAL");
+
+      var airline_group = d3.nest()
+                         .key(function(d) {
+                            return d['carrier'];
+                         })
+                         .entries(data);
+
+      //debugger;
+ 
+      // draw line of the ontime ratio of each carrier
+      var color = d3.scale.category20();
+      airline_group.forEach(function(d, i){
+          var each_airline = nested_data_year(d.values);
+          plot_line(svg, each_airline, "ontime_ratio", color(i), d.key);
+      });
+
+      // title
+      svg.append('g')
+         .append("text")
+         .attr("font-size", 22)
+         .attr("class", "title_1")
+         .attr("font-weight", "bold")
+         .attr("transform", "translate(" + width * 0.43 + "," + 50 + ")")
+         .text("Ontime Ratio over Years");
+
+
+
+
+      // set up events linstener
+      var lines = d3.selectAll(".line");
+      var legend_1 = svg.append("g")
+                      .append("text")
+                      .attr("class", "legend_1 legend")
+                      .attr("transform", "translate(" + width *0.82 + "," + 80 + ")")
+                      .attr("font-size", 16);
+
+      // mouseover listener
+      lines.on("mouseover", function(d){
+        lines.each(function(d, i){
+          if(d3.select(this).attr("locked") == "false"){
+            d3.select(this)
+              .style("opacity", 0.3)
+              .style("stroke-width", 1);
+          }
+          else{
+            d3.select(this)
+              .style("stroke-width", 2);
+          }
+        });
+          
+        legend_1.text("");
+
+        d3.select(this)
+          .style("opacity", 1.0)
+          .style("stroke-width", 2);
+
+        if(this.id == "TOTAL"){
+          legend_1.text(this.id);
+        }
+        else{
+          legend_1.text("Carrier code: " + this.id);
+        }
+
+      });
+
+      // mouse click listener
+      lines.on("click", function(d){
+        if(d3.select(this).attr("locked") == "false"){
+          d3.select(this).attr("locked", "true")
+            .style("opacity", 1.0)
+            .style("stroke-width", 2);
+        }
+        else{
+          d3.select(this).attr("locked", "false")
+            .style("opacity", 0.2)
+            .style("stroke-width", 1);
+        }
+      });
+
+      // draw the second plot 
+      var svg = d3.select(".plot-2")
+                  .append("svg")
+                  .attr("width", width + margin)
+                  .attr("height", height + margin)
+                  .append('g')
+                  .attr('class', 'average_delay');
+
+      // draw svg border
+      setup_svg(svg);
+
+      // extract the requisted data of each carrier
+      var nested_carrier = nested_data_carrier(data, 2013);
+
+      //debugger;
+
+      var average_delay_max = d3.max(nested_carrier, function(d){
+                              return d.values.average_delay;
+                            });
+
+      var height_scale = d3.scale.linear()
+                        .domain([0, average_delay_max])
+                        .range([height - margin * 2, 0]);
+            
+      // draw y axis
+      setup_draw_y_axis_carrier(svg, height_scale);
+          
+      svg.append('g')
+         .selectAll("rect")
+         .data(nested_carrier.sort(function(a, b) { 
+                  return a.values['average_delay'] - b.values['average_delay'];
+               }), function(d){
+                  return d.key;
+         })
+         .enter()
+         .append("rect")
+         .attr("class", "bar")
+         .attr("x", function(d, i) {
+            return i * ((width + margin) * 0.75 / nested_carrier.length) + width * 0.125;
+          })      
+         .attr("y", function(d) {
+              return 2 * margin +  height_scale(d.values.average_delay);  
+          })
+         .attr("width", (width + margin) * 0.75 / nested_carrier.length - barPadding)
+         .attr("height", function(d) {
+            return height - 2 * margin - height_scale(d.values.average_delay);
+          })
+         .attr("fill", "teal")
+         .attr("name", function(d){
+            return d.values.carrier_name;
+         })
+         .attr("short_name", function(d){
+            return d.key;
+         });
+
+
+      svg.append('g')
+         .selectAll("text")
+         .data(nested_carrier)
+         .enter()
+         .append("text")
+         .attr("x", function(d, i) {
+            return i * ((width + margin) * 0.75 / nested_carrier.length) + width * 0.125 + 25;
+         })
+         .attr("y", function(d) {
+            return 2 * margin +  height_scale(d.values.average_delay) + 20;
+         })
+         .attr("fill", "white")
+         .text(function(d){
+            //debugger;
+            return d.values.average_delay.toFixed();
+         });
+
+      svg.append('g')
+         .selectAll("text")
+         .data(nested_carrier)
+         .enter()
+         .append("text")
+         .attr("x", function(d, i) {
+            return i * ((width + margin) * 0.75 / nested_carrier.length) + width * 0.125 + 23;
+         })
+         .attr("y", function(d) {
+            return height + 20;
+         })
+         .attr("fill", "black")
+         .text(function(d){
+            //debugger;
+            return d.key;
+         });
+
+
+      // title
+      svg.append('g')
+         .append("text")
+         .attr("font-size", 22)
+         .attr("class", "title_2")
+         .attr("font-weight", "bold")
+         .attr("transform", "translate(" + width * 0.37 + "," + 50 + ")")
+         .text("Average delay time of airline carrier");
+
+      var legend_2 = svg.append("g")
+                      .append("text")
+                      .attr("class", "legend_2 legend")
+                      .attr("transform", "translate(" + width * 0.65 + "," + 120 + ")")
+                      .attr("font-size", 16);
+
+      var bars = d3.selectAll(".bar");
+      bars.on("mouseover", function(d){
+        d3.selectAll(".bar").style("fill", "teal");
+        d3.select(this).style("fill", "blue");
+
+        //debugger;
+        legend_2.text(d3.select(this).attr("short_name") + " : " + d3.select(this).attr("name"));
+      });
+
+
+
+
+
+    };
+
+  </script>
+</head>
+<body>
+  <h2>
+    Which airline carrier is the best choise if you are in DC and hate being late?
+  </h2>
+  <div  class = "plot-1">
+    <script type="text/javascript">
+      d3.csv("airline_delay_causes.csv",function(d) {
+        d['arr_flights'] = +d["arr_flights"];
+        d['arr_del15'] = +d['arr_del15'];
+        d['arr_cancelled'] = +d['arr_cancelled'];
+        d['arr_diverted'] = +d['arr_diverted'];
+        d[' arr_delay'] = +d[' arr_delay'];
+        d['year'] = +d['year'];
+        return d;
+      }, draw_1);
+    </script>
+  </div>
+
+  <div>
+    <p>
+        from the above chart we can see ...
+    </p>
+  </div>
+
+  <div class = "plot-2">
+  </div>
+</body>
+</html>
