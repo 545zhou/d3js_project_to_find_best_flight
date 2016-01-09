@@ -1,6 +1,7 @@
 The code formatting is consistant. Since the dataset use features like "arr-delay", the format I use in my code agrees with such a format. For example, instead of use function name like "getValue", the name I use is "get_value".
 
-Version improvement:
+Version improvements are:
+
 version 1 plot total arr_flights
 version 2 plot ontime ratio over year
 version 3 add interaction to plot 1
@@ -19,14 +20,14 @@ To show the webpage, turn on control console then go to one version directory. T
 
 Then go to web browser and type in address: localhost:8000. Find the .html file and click it to go to the right webpage. 
 
-1. Summary
+Summary
 The purpose of this project is to help people decide which airline carrier to take if they are time sensitive. I used line chatter to show evolution and bar chart to compare different choices. In the line chart, a perticular airline could be distinguished from others by mouseover or click. In the bar chart, interaction is used to take different strategies. From the illustration and analysis, we find some pretty good choices of airline carriers to DC if you hate being late. "VX", "UA", "AS" and "DL" are among best good options for most people if available. If those carrier are not availabe for you, the plots with interactions can still give you a hand to help decide which airline suits you best. 
 
 For someone who feels hard to choose if there is tradeoff, I also created a new feature called "Opportunity Delay" to help them decide. This feature combined two factors and is more eaier to be accepted.
 
 More information and analysis is in index_final.html.
 
-2. Design
+Design
 I would like to see the performance evolution of each airline carrier over years to find any trend, so a line chart is the best to accomplish this goal. But plot a lot of lines on the same chart is a little messy, so I design some interactions such as mouseover and click to highlight the lines that one is interested at. Such interactions help people focus on perticular lines. 
 
 I also want to compare different choices. First I want to compare the average delay time of each airline. Bar chart is good at this. Second, I want to find how to balance between delay time and delay chance. So I create another bar chart of ontime ratio and put them together side to side. As is shown in the second plot. I also want to make the results of different decisions more clear, so I add the switch button which will sort the data according to dffierent strategies.
@@ -35,21 +36,21 @@ Then my girlfriend provided me a good improvement. If there are two factors whic
 
 All the plots have borders because it makes the plot more clear. For the first plot, I use different colors to represent different carriers. For the two bar charts, I use green to be the color becasue it's more comfortable and clear to me. Plot 1, plot 2 and plot 3 all have interactions. 
 
-3. Feedback
+Feedback
   
-   1st person: Plot 2 draws histogram. If the bars are not ordered, it's not easy to see at first glance which is best.
-      Improvement: Sorted the data according to required value. Make the plot better.
+1st person: Plot 2 draws histogram. If the bars are not ordered, it's not easy to see at first glance which is best.
+Improvement: Sorted the data according to required value. Make the plot better.
 
-   2nd person: When one line in plot 1 is pinned, it's not easy to see if it has realy been pinned. It happens a lot that we thought one line has been pinned, but when the mouse moved away, the line's highlight disappeared. It acturally has not been pinned.
-      Improvement: Change the interaction so now when one line is pinned, its width will shrink. Such a transmission process works as an indicator to show if one line is pinned.
+2nd person: When one line in plot 1 is pinned, it's not easy to see if it has realy been pinned. It happens a lot that we thought one line has been pinned, but when the mouse moved away, the line's highlight disappeared. It acturally has not been pinned.
+Improvement: Change the interaction so now when one line is pinned, its width will shrink. Such a transmission process works as an indicator to show if one line is pinned.
 
-   3rd person: when mouse moves over lines or bars and then moves away, the highlighted element would still be highlighted which makes the display logic not consistant. 
-   	  Improvement: Add "mouseout" method into the interaction. So now when mouse moves away, everything will return to default.
+3rd person: when mouse moves over lines or bars and then moves away, the highlighted element would still be highlighted which makes the display logic not consistant. 
+Improvement: Add "mouseout" method into the interaction. So now when mouse moves away, everything will return to default.
 
-   4th person: The second plot provides two factors for people to balance to make best choice. It is hard for some people to do this.
-      Improvement: As mentioned in the above Desigan section, I created a new feature to help people to decide.
+4th person: The second plot provides two factors for people to balance to make best choice. It is hard for some people to do this.
+Improvement: As mentioned in the above Desigan section, I created a new feature to help people to decide.
 
-4. resources
+Resources
 	www.udacity.com
 	www.google.com
 	www.stackoverflow.com
