@@ -1,15 +1,15 @@
 The code formatting is consistant. Since the dataset use features like "arr-delay", the format I use in my code agrees with such a format. For example, instead of use function name like "getValue", the name I use is "get_value".
 
-Version improvement
-    version 1 plot total arr_flights
-    version 2 plot ontime ratio over year
-    version 3 add interaction to plot 1
-    version 4 add plot 2 which shows average delay time
-    version 5 plot 2 now show delay&ratio and can sort by either of them
-    version 6 split code into different .js files for better management
-    version 7 used graph to display a story
-    version 8 was the version submitted before. But there were some defects in it
-    version 9 corrects some errors and typoes in version 8 and is currently newest version
+Version improvement:
+version 1 plot total arr_flights
+version 2 plot ontime ratio over year
+version 3 add interaction to plot 1
+version 4 add plot 2 which shows average delay time
+version 5 plot 2 now show delay&ratio and can sort by either of them
+version 6 split code into different .js files for better management
+version 7 used graph to display a story
+version 8 was the version submitted before. But there were some defects in it
+version 9 corrects some errors and typoes in version 8 and is currently newest version
 
 version 7 tells the story. The versions before version 7 do not include storying telling or their webpage appearance may be bad but they are still important because they are the base of the final version. 
 
