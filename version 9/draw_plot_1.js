@@ -76,7 +76,7 @@ function setup_draw_xy_axis_year(element, time_scale, count_scale){
 
   element.append('text')
           .attr('transform', 'rotate(-90)')
-          .attr('transform', 'translate('+ (margin/3) +','+(height/2 + margin/2)+')rotate(-90)')
+          .attr('transform', 'translate('+ (margin/3) +','+(height/2 + margin * 1.5)+')rotate(-90)')
           .text('total flights ontime ratio')
           .attr('font-size', '20px') ;
           
